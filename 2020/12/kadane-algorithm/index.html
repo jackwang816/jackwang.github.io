@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.79.1 with theme Tranquilpeak 0.4.8-BETA">
+<meta name="author" content="薛定谔的猫">
+<meta name="keywords" content="">
+<meta name="description" content="写这篇文章的目的是分享自己在解Leetcode题目“最大子数组问题”时候，用到的Kadane算法，这是一个典型的动态规划算法示例。
+
+为了更好的理解Kadane算法，本文章首先介绍暴力破解的方法，然后通过对暴力破解算法的改进，详细介绍Kadane算法的思路，其中会简单介绍动态规划算法。
+希望能够帮助读者更好地理解Kadane算法，从而对动态规划算法有更深的理解。">
+
+
+<meta property="og:description" content="写这篇文章的目的是分享自己在解Leetcode题目“最大子数组问题”时候，用到的Kadane算法，这是一个典型的动态规划算法示例。
+
+为了更好的理解Kadane算法，本文章首先介绍暴力破解的方法，然后通过对暴力破解算法的改进，详细介绍Kadane算法的思路，其中会简单介绍动态规划算法。
+希望能够帮助读者更好地理解Kadane算法，从而对动态规划算法有更深的理解。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="最大子数组问题Kadane算法">
+<meta name="twitter:title" content="最大子数组问题Kadane算法">
+<meta property="og:url" content="https://jackwang816.github.io/2020/12/kadane-algorithm/">
+<meta property="twitter:url" content="https://jackwang816.github.io/2020/12/kadane-algorithm/">
+<meta property="og:site_name" content="薛定谔的猫">
+<meta property="og:description" content="写这篇文章的目的是分享自己在解Leetcode题目“最大子数组问题”时候，用到的Kadane算法，这是一个典型的动态规划算法示例。
+
+为了更好的理解Kadane算法，本文章首先介绍暴力破解的方法，然后通过对暴力破解算法的改进，详细介绍Kadane算法的思路，其中会简单介绍动态规划算法。
+希望能够帮助读者更好地理解Kadane算法，从而对动态规划算法有更深的理解。">
+<meta name="twitter:description" content="写这篇文章的目的是分享自己在解Leetcode题目“最大子数组问题”时候，用到的Kadane算法，这是一个典型的动态规划算法示例。
+
+为了更好的理解Kadane算法，本文章首先介绍暴力破解的方法，然后通过对暴力破解算法的改进，详细介绍Kadane算法的思路，其中会简单介绍动态规划算法。
+希望能够帮助读者更好地理解Kadane算法，从而对动态规划算法有更深的理解。">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2020-12-18T00:00:00">
+  
+  
+    <meta property="article:modified_time" content="2020-12-18T00:00:00">
+  
+  
+  
+    
+      <meta property="article:section" content="2020-12">
+    
+  
+  
+    
+      <meta property="article:tag" content="算法">
+    
+      <meta property="article:tag" content="动态规划">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://jackwang816.github.io/images/profilePortrait.jpg">
+  <meta property="twitter:image" content="https://jackwang816.github.io/images/profilePortrait.jpg">
+
+
+    <title>最大子数组问题Kadane算法</title>
+
+    <link rel="icon" href="https://jackwang816.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://jackwang816.github.io/2020/12/kadane-algorithm/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://jackwang816.github.io/css/style-twzjdbqhmnnacqs0pwwdzcdbt8yhv8giawvjqjmyfoqnvazl0dalmnhdkvp7.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://jackwang816.github.io/">薛定谔的猫</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://jackwang816.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://jackwang816.github.io/images/profilePortrait.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://jackwang816.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://jackwang816.github.io/images/profilePortrait.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">薛定谔的猫</h4>
+        
+          <h5 class="sidebar-profile-bio">个人博客</h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/jackwang816" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      最大子数组问题Kadane算法
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2020-12-18T00:00:00Z">
+        
+  十二月 18, 2020
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://jackwang816.github.io/categories/2020-12">2020-12</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>写这篇文章的目的是分享自己在解Leetcode题目“最大子数组问题”时候，用到的Kadane算法，这是一个典型的动态规划算法示例。</p>
+
+<p>为了更好的理解Kadane算法，本文章首先介绍暴力破解的方法，然后通过对暴力破解算法的改进，详细介绍Kadane算法的思路，其中会简单介绍动态规划算法。
+希望能够帮助读者更好地理解Kadane算法，从而对动态规划算法有更深的理解。</p>
+
+<h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+<ul>
+<li><a href="#1-问题描述">1. 问题描述</a></li>
+<li><a href="#2-暴力破解">2. 暴力破解</a></li>
+<li><a href="#3-从暴力破解到kadane算法的思路过程">3. 从暴力破解到Kadane算法的思路过程</a></li>
+<li><a href="#4-python代码">4. Python代码</a></li>
+<li><a href="#5-总结">5. 总结</a></li>
+</ul>
+</nav>
+
+<h1 id="1-问题描述">1. 问题描述</h1>
+
+<p>LeetCode上面的题目描述：</p>
+
+<p>给定一个整数数组 nums ，找到一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。</p>
+
+<p>示例:</p>
+<pre><code>输入: [-2,1,-3,4,-1,2,1,-5,4]
+输出: 6
+解释: 连续子数组 [4,-1,2,1] 的和最大，为 6。</code></pre>
+<p>来源：力扣（LeetCode）
+链接：<a href="https://leetcode-cn.com/problems/maximum-subarray">https://leetcode-cn.com/problems/maximum-subarray</a></p>
+
+<p>在解释Kadane算法之前，我们先从简单的方法入手，首先介绍一下暴力破解的方法。本篇文章就以LeetCode题目中的示例数组为例来介绍算法。</p>
+
+<h1 id="2-暴力破解">2. 暴力破解</h1>
+
+<p>首先观察题目可以很自然地想到一个明显的解决方法：遍历所有的子数组并计算子数组的和，从所有子数组和中找到最大的和，即为结果。这个方法很符合我们的直觉，那么如何遍历所有的子数组呢？直观的办法是从第一个元素开始，查找所有以nums[0]起始的子数组，然后在依次查找以num[1],nums[2]&hellip;nums[n-1]起始的所有子数组，具体如下：</p>
+<pre><code>nums[0]起始子数组:                  nums[1]起始子数组:
+-2, 1, -3, 4, -1, 2, 1, -5, 4      -2, 1, -3, 4, -1, 2, 1, -5, 4
+-2                                     1,
+-2, 1                                  1, -3
+  .                                       .                       ...
+  .                                       .
+  .                                       .
+                                       1, -3, 4, -1, 2, 1, -5
+-2, 1, -3, 4, -1, 2, 1, -5             1, -3, 4, -1, 2, 1, -5, 4
+-2, 1, -3, 4, -1, 2, 1, -5, 4</code></pre>
+<p>上面介绍的方法就可以遍历给定数组的所有子数组了，不过为了方便下文介绍从暴力破解推导Kadane算法的过程，我们对这个遍历方法做个改变，改成从后往前遍历。即：从最后一个元素开始，查找所有以nums[n-1]结束的子数组，为了方便描述用subarray[n-1]表示，然后依次查找以nums[n-2], nums[n-3]&hellip;nums[0]结束的子数组（subarray[n-2], subarray[n-3]&hellip;subarray[0]），具体如下：</p>
+<pre><code>subarray[n-1]:                      subarray[n-2]:
+-2, 1, -3, 4, -1, 2, 1, -5, 4      -2, 1, -3, 4, -1, 2, 1, -5, 4
+                            4                              -5
+                        -5, 4                           1, -5
+                          .                               .       ...
+                          .                               .
+                          .                               .
+    1, -3, 4, -1, 2, 1, -5, 4      -2, 1, -3, 4, -1, 2, 1, -5
+-2, 1, -3, 4, -1, 2, 1, -5, 4,</code></pre>
+<p>显然，这种办法也可以遍历到nums数组的所有可能的子数组，通过这种暴力破解的方法就很容易得到答案了。下面放出我的代码，这里我使用递归，能更直观的理解第二种遍历方法：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">maxSubArray</span>(self, nums: list, n: int) <span style="color:#f92672">-&gt;</span> int:
+    <span style="color:#66d9ef">if</span> n<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span> <span style="color:#75715e"># in case there is no item in nums</span>
+    <span style="color:#66d9ef">if</span> n<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>:
+        <span style="color:#66d9ef">return</span> nums[<span style="color:#ae81ff">0</span>]
+    max_sum, idx <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>maxSubArray(nums[<span style="color:#ae81ff">0</span>:n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>], n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>), n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+    s <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+    <span style="color:#66d9ef">while</span> idx <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>:
+        s <span style="color:#f92672">+=</span> nums[idx]
+        max_sum <span style="color:#f92672">=</span> max(s, max_sum)
+        idx <span style="color:#f92672">-=</span> <span style="color:#ae81ff">1</span>
+    <span style="color:#66d9ef">return</span> max_sum</code></pre></div>
+<p>相信你也看到了，这种算法并不高效，随着数组规模扩大（n增大），子数组的数量也会快速增加，从而使的算法的时间复杂度快速增加。这个算法的时间复制度是$O(n^2)$, 是种比较低效的方法。</p>
+
+<p>那么我们可以如何提高这个算法的效率呢？相信你也想到了，从我的递归程序里面可以看出，这个题目是可以用动态规划来优化的，接下来我们来看看如何使用动态规划解决这个问题。</p>
+
+<h1 id="3-从暴力破解到kadane算法的思路过程">3. 从暴力破解到Kadane算法的思路过程</h1>
+
+<p>动态规划是一种利用空间换时间的算法思想，本质上是通过将一个复杂的求解最优方案的问题，分解成若干个子问题，而问题最终解可以通过子问题的解推导得到。因而我们可以保存子问题的解，在遇到相同子问题时直接从存储中读取解，而不是从新求解子问题，从而达到利用空间换时间的效果。</p>
+
+<p>可以用动态规划求解的问题一般有两个性质：最优子结构和重复子问题。</p>
+
+<p>让我们来分析一下这个题目是否可以使用动态规划的方法求解，首先回忆一下刚刚的递归过程，对于元素i，我们不妨定义subarray[i]为以i元素结尾的所有子数组集合,S[i]表示以i为结尾所有子数组和的集合，sum[i][j]表示以j开头i结束的子数组和（$S[i] \in sum[i][j]$），进而可以定义max_sum[i]表示以i结尾的最大子数组和：</p>
+<pre><code>  -2, 1, -3, 4, -1, 2, 1, -5, 4     |   -2, 1, -3, 4, -1, 2, 1, -5, 4
+                                  |                     2    2    sum[5][5]
+              -1   -1   sum[4][4] |                 -1, 2    1    sum[5][4]
+           4, -1    3   sum[4][3] |              4, -1, 2    5    sum[5][3]
+       -3, 4, -1    0   sum[4][2] |          -3, 4, -1, 2    2    sum[5][2]
+    1, -3, 4, -1    1   sum[4][1] |       1, -3, 4, -1, 2    3    sum[5][1]
+  -2, 1, -3, 4, -1   -1   sum[4][0] |   -2, 1, -3, 4, -1, 2    1    sum[5][0]
+  ------  -------   -  -            |   --------  ---------   -  -
+      \/           \/             |           \/             \/
+    subarray[4]    S[4]           |        subarray[5]       S[5]
+        max_sum[4] = 3                         max_sum[5] = 5</code></pre>
+<p>递归公式如下：</p>
+<pre><code>max_sum[i] = max(sum[i][0], sum[i][1] ...sum[i][i])
+final_max = max(max_sum[i], max_sum[i-1])</code></pre>
+<p>再来观察一下sum[i][j]，可以得到如下规律：</p>
+<pre><code>sum[i][i] = nums[i]
+sum[i][i-1] = nums[i] + sum[i-1][i-1]
+sum[i][i-2] = nums[i] + sum[i-1][i-2]
+        ...
+sum[i][0] = nums[i] + sum[i-1][0]</code></pre>
+<p>我们可以看出sum[i][j]是可以通过sum[i-1][j]推导得到，其中计算sum[i][j]的过程中包含了大量重复计算的子问题sum[i-1][j]，到此我们可以看出这个问题符合动态规划的两个特征，可以用动态规划来解决这个问题，具体如何优化呢？</p>
+
+<p>我们来观察一下递归公式中的max_sum[i]以及上面推导的sum[i][j]的计算过程，很容易可以得到以下公式：</p>
+<pre><code>max_sum[i] = max(nums[i], max[i-1]+nums[i])</code></pre>
+<p>即所有以i结尾的子数组的和的最大值max_sum[i]可以从nums[i]和max[i-1]+nums[i]这两个数中选最大的一个，从而最大子数组和的问题可以转化为递归地计算$max_sum$的子问题上来,而且可以很容易的得出max_sum[0]=nums[0]。因此，可以很自然的得到以下动态规划状态转移方程：</p>
+<pre><code>max_sum[i] = max(nums[i], max[i-1]+nums[i])
+final_max = max(max_sum[i], final_max)</code></pre>
+<h1 id="4-python代码">4. Python代码</h1>
+
+<p>至此，我们已经分析了这个问题从暴力破解到动态规划算法的优化过程，下面我贴出我自己的python代码，仅供参考：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">maxSubArray</span>(self, nums: List[int]) <span style="color:#f92672">-&gt;</span> int:
+    <span style="color:#66d9ef">if</span> len(nums) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>:
+        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
+    final_max <span style="color:#f92672">=</span> nums[<span style="color:#ae81ff">0</span>]
+    max_sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+    <span style="color:#66d9ef">for</span> n <span style="color:#f92672">in</span> nums:
+        max_sum <span style="color:#f92672">=</span> max(n, max_sum<span style="color:#f92672">+</span>n)
+        final_max <span style="color:#f92672">=</span> max(max_sum, final_max)
+    <span style="color:#66d9ef">return</span> final_max</code></pre></div>
+<p>这里我没有用数组存储max_sum[i]，而是直接用了一个变量来存储，由于状态转移过程只需要用到上一个位置的最优结果，因此只存储上一个max_sum是可行的，这样也节约了存储。可以看出优化后的程序，我们只需要遍历一次nums数组，时间复杂度为$O(n)$，比暴力求解了较好的提高。</p>
+
+<h1 id="5-总结">5. 总结</h1>
+
+<p>由于问题的最终解final_max通过分解成max_sum[0]&hellip;.max_sum[n-1]这些子问题来求解，其中包含了很多重复子问题，这个问题可以用动态规划来优化。通过对Kadane算法的分析，我们可以更好地理解动态规划的思想。</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://jackwang816.github.io/tags/%E7%AE%97%E6%B3%95/">算法</a>
+
+  <a class="tag tag--primary tag--small" href="https://jackwang816.github.io/tags/%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92/">动态规划</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://jackwang816.github.io/2020/12/markdown-grammer/" data-tooltip="Markdown语法">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2020 薛定谔的猫. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://jackwang816.github.io/2020/12/markdown-grammer/" data-tooltip="Markdown语法">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://jackwang816.github.io/images/profilePortrait.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">薛定谔的猫</h4>
+    
+      <div id="about-card-bio">个人博客</div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Software Engineer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://jackwang816.github.io/images/blog.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://jackwang816.github.io/js/script-pcw6v3xilnxydl1vddzazdverrnn9ctynvnxgwho987mfyqkuylcb1nlt.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+  
+
+
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_CHTML-full" integrity="sha256-GhM+5JHb6QUzOQPXSJLEWP7R73CbkisjzK5Eyij4U9w=" crossorigin="anonymous"></script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      CommonHTML: { linebreaks: { automatic: true } },
+      tex2jax: { inlineMath: [ ['$', '$'], ['\\(','\\)'] ], displayMath: [ ['$$','$$'], ['\\[', '\\]'] ], processEscapes: false },
+      messageStyle: 'none'
+    });
+  </script>
+
+
+
+    
+  </body>
+</html>
+

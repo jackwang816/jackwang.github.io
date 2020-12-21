@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>2020-12 on 薛定谔的猫</title>
+    <link>https://jackwang816.github.io/categories/2020-12/</link>
+    <description>Recent content in 2020-12 on 薛定谔的猫</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Fri, 18 Dec 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://jackwang816.github.io/categories/2020-12/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Markdown语法</title>
+      <link>https://jackwang816.github.io/2020/12/markdown-grammer/</link>
+      <pubDate>Fri, 18 Dec 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://jackwang816.github.io/2020/12/markdown-grammer/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>最大子数组问题Kadane算法</title>
+      <link>https://jackwang816.github.io/2020/12/kadane-algorithm/</link>
+      <pubDate>Fri, 18 Dec 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://jackwang816.github.io/2020/12/kadane-algorithm/</guid>
+      <description>&lt;p&gt;写这篇文章的目的是分享自己在解Leetcode题目“最大子数组问题”时候，用到的Kadane算法，这是一个典型的动态规划算法示例。&lt;/p&gt;
+
+&lt;p&gt;为了更好的理解Kadane算法，本文章首先介绍暴力破解的方法，然后通过对暴力破解算法的改进，详细介绍Kadane算法的思路，其中会简单介绍动态规划算法。
+希望能够帮助读者更好地理解Kadane算法，从而对动态规划算法有更深的理解。&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

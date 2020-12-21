@@ -12,13 +12,12 @@
 # For developpers, if you modify this theme, put your images in `source/images` folder and
 # use grunt task `build` to synchronize assets
 
-# baseURL = "https://example.org/"
 baseURL = "https://jackwang816.github.io"
-languageCode = "en-us"
-defaultContentLanguage = "en-us"
-title = "Personal blog for Jack"
+languageCode = "zh-cn"
+defaultContentLanguage = "zh-cn"
+title = "薛定谔的猫"
 theme = "hugo-tranquilpeak-theme"
-disqusShortname = "hugo-tranquilpeak-theme"
+# disqusShortname = "hugo-tranquilpeak-theme"
 # googleAnalytics = "UA-123-45"
 paginate = 7
 canonifyurls = true
@@ -32,8 +31,8 @@ canonifyurls = true
   archive = "archives"
 
 [author]
-  name = "Jack Wang"
-  bio = "My personal blog"
+  name = "薛定谔的猫"
+  bio = "个人博客"
   job = "Software Engineer"
   location = "China"
   # Your Gravatar email. Overwrite `author.picture` everywhere in the blog
@@ -97,8 +96,26 @@ canonifyurls = true
 #   name = "RSS"
 #   pre = "<i class=\"sidebar-button-icon fa fa-lg fa-rss\"></i>"
 #   url = "/index.xml"
+[markup]
+  defaultMarkdownHandler = "blackFriday"
+  # [markup.blackFriday]
+  #   angledQuotes = false
+  #   footnoteAnchorPrefix = ""
+  #   footnoteReturnLinkContents = ""
+  #   fractions = true
+  #   hrefTargetBlank = false
+  #   latexDashes = true
+  #   nofollowLinks = false
+  #   noreferrerLinks = false
+  #   plainIDAnchors = true
+  #   skipHTML = false
+  #   smartDashes = true
+  #   smartypants = true
+  #   smartypantsQuotesNBSP = false
+  #   taskLists = true
 
 [params]
+  math = true
   # Customize date format use to render blog post date, categories and other
   # You must use date format used by Go Time package https://golang.org/pkg/time/
   # Months (not work with short month like "jan", "feb", etc) are translated if translation exists on i18n folders
@@ -142,7 +159,7 @@ canonifyurls = true
   # Current image is on AWS S3 and delivered by AWS CloudFront.
   # Otherwise put your image, for example `cover.jpg` in folder `static/images/`,
   # and use relative url : `images/cover.jpg`
-  coverImage = "images/cover.jpg"
+  coverImage = "images/blog.jpg"
 
   # Display an image gallery at the end of a post which have photos variables (false: disabled, true: enabled)
   imageGallery = true
@@ -187,20 +204,20 @@ canonifyurls = true
   # Comment and uncomment to enable or disable sharing options
   # If you wanna add a sharing option, read user documentation :
   # Tranquilpeak configuration > Theme configuration > sharing-options
-  [[params.sharingOptions]]
-    name = "Facebook"
-    icon = "fa-facebook-official"
-    url = "https://www.facebook.com/sharer/sharer.php?u=%s"
+  # [[params.sharingOptions]]
+  #   name = "Facebook"
+  #   icon = "fa-facebook-official"
+  #   url = "https://www.facebook.com/sharer/sharer.php?u=%s"
 
-  [[params.sharingOptions]]
-    name = "Twitter"
-    icon = "fa-twitter"
-    url = "https://twitter.com/intent/tweet?text=%s"
+  # [[params.sharingOptions]]
+  #   name = "Twitter"
+  #   icon = "fa-twitter"
+  #   url = "https://twitter.com/intent/tweet?text=%s"
 
-  [[params.sharingOptions]]
-    name = "Google+"
-    icon = "fa-google-plus"
-    url = "https://plus.google.com/share?url=%s"
+  # [[params.sharingOptions]]
+  #   name = "Google+"
+  #   icon = "fa-google-plus"
+  #   url = "https://plus.google.com/share?url=%s"
 
   [params.header.rightLink]
     class = ""

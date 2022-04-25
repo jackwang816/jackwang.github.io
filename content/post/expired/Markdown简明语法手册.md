@@ -9,7 +9,7 @@ tags:
 # thumbnailImagePosition: left
 # thumbnailImage: //d1u9biwaxjngwg.cloudfront.net/chinese-test-post/vintage-140.jpg
 # comments: false
-# draft: true
+draft: true
 ---
 
 <!--more-->

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>编译 on 薛定谔的猫</title>
+    <link>https://jackwang816.github.io/tags/%E7%BC%96%E8%AF%91/</link>
+    <description>Recent content in 编译 on 薛定谔的猫</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 28 Mar 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://jackwang816.github.io/tags/%E7%BC%96%E8%AF%91/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>利用 --wrap 链接选项包装函数的技巧</title>
+      <link>https://jackwang816.github.io/2022/03/wrap-function-by-linker-option/</link>
+      <pubDate>Mon, 28 Mar 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://jackwang816.github.io/2022/03/wrap-function-by-linker-option/</guid>
+      <description>&lt;p&gt;最近在公司项目中看到一个链接技巧，可以通过链接器的链接选项 &amp;ndash;wrap 来包装一个函数，使得在程序链接的时候链接器自动将对目标函数的引用解析到我们定义的包装函数。通过这个小技巧可以很方便的在不改变代码结构的前提下，通过链接选项来控制具体环境下的函数具体实现方法，替换掉原项目中某些函数的实现。这个技巧在debug以及一些嵌入式项目的单元测试中比较好用。&lt;/p&gt;
+
+&lt;p&gt;话不多说，来看看&amp;ndash;wrap这个链接选项具体的用法吧。&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

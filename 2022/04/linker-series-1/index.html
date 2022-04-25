@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.96.0 with theme Tranquilpeak 0.4.8-BETA">
+<meta name="author" content="薛定谔的猫">
+<meta name="keywords" content="">
+<meta name="description" content="最近打算写一个链接器系列文章，记录一下最近工作和学习的心得，主要介绍一下链接器的基本知识，包括链接器的工作原理，静态链接以及动态链接等内容。
+开篇先介绍一下链接器的基本功能，其他的细节会在后面的文章中继续介绍。">
+
+
+<meta property="og:description" content="最近打算写一个链接器系列文章，记录一下最近工作和学习的心得，主要介绍一下链接器的基本知识，包括链接器的工作原理，静态链接以及动态链接等内容。
+开篇先介绍一下链接器的基本功能，其他的细节会在后面的文章中继续介绍。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="链接器系列（一）">
+<meta name="twitter:title" content="链接器系列（一）">
+<meta property="og:url" content="https://jackwang816.github.io/2022/04/linker-series-1/">
+<meta property="twitter:url" content="https://jackwang816.github.io/2022/04/linker-series-1/">
+<meta property="og:site_name" content="薛定谔的猫">
+<meta property="og:description" content="最近打算写一个链接器系列文章，记录一下最近工作和学习的心得，主要介绍一下链接器的基本知识，包括链接器的工作原理，静态链接以及动态链接等内容。
+开篇先介绍一下链接器的基本功能，其他的细节会在后面的文章中继续介绍。">
+<meta name="twitter:description" content="最近打算写一个链接器系列文章，记录一下最近工作和学习的心得，主要介绍一下链接器的基本知识，包括链接器的工作原理，静态链接以及动态链接等内容。
+开篇先介绍一下链接器的基本功能，其他的细节会在后面的文章中继续介绍。">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2022-04-23T00:00:00">
+  
+  
+    <meta property="article:modified_time" content="2022-04-23T00:00:00">
+  
+  
+  
+    
+      <meta property="article:section" content="2020-12">
+    
+  
+  
+    
+      <meta property="article:tag" content="编译链接">
+    
+      <meta property="article:tag" content="操作系统">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://jackwang816.github.io/images/profilePortrait.jpg">
+  <meta property="twitter:image" content="https://jackwang816.github.io/images/profilePortrait.jpg">
+
+
+    <title>链接器系列（一）</title>
+
+    <link rel="icon" href="https://jackwang816.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://jackwang816.github.io/2022/04/linker-series-1/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://jackwang816.github.io/css/style-twzjdbqhmnnacqs0pwwdzcdbt8yhv8giawvjqjmyfoqnvazl0dalmnhdkvp7.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://jackwang816.github.io/">薛定谔的猫</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://jackwang816.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://jackwang816.github.io/images/profilePortrait.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://jackwang816.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://jackwang816.github.io/images/profilePortrait.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">薛定谔的猫</h4>
+        
+          <h5 class="sidebar-profile-bio">个人博客</h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/jackwang816" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      链接器系列（一）
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2022-04-23T00:00:00Z">
+        
+  四月 23, 2022
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://jackwang816.github.io/categories/2020-12">2020-12</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>最近打算写一个链接器系列文章，记录一下最近工作和学习的心得，主要介绍一下链接器的基本知识，包括链接器的工作原理，静态链接以及动态链接等内容。
+开篇先介绍一下链接器的基本功能，其他的细节会在后面的文章中继续介绍。</p>
+
+<h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#链接器是干什么的">链接器是干什么的</a></li>
+<li><a href="#编译过程">编译过程</a>
+<ul>
+<li>
+<ul>
+<li><a href="#预编译">预编译</a></li>
+<li><a href="#编译">编译</a></li>
+<li><a href="#汇编">汇编</a></li>
+<li><a href="#链接">链接</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#共享库">共享库</a></li>
+<li><a href="#总结">总结</a></li>
+</ul></li>
+</ul>
+</nav>
+
+<h2 id="链接器是干什么的">链接器是干什么的</h2>
+
+<p>简单的说，链接器的作用就是把一堆目标文件转换成一个可执行文件或者共享库。一个可执行程序或者共享库可以由很多个目标文件构成，每个目标文件可以包含一个或几个模块，链接器就像是一个粘合剂一样，把各个模块“粘合”在一起形成一个完整的程序或库（库本身还是可以被链接到其他可执行文件）。</p>
+
+<p>这个解释又带来几个问题，什么是目标文件，什么是可执行文件和共享库，目标文件和可执行文件以及共享库之间有什么联系呢？后面我会对这些概念做解释，这里我们只要简单的认为，可执行文件就是程序最终想要生成的文件，运行该文件就能实现程序的功能，目标文件就是组成可执行文件的一些拼图碎片，可执行文件就是通过把这些碎片拼起来组成的一个完整的程序。</p>
+
+<p>那么链接器是怎么拼的呢？</p>
+
+<h2 id="编译过程">编译过程</h2>
+
+<p>在通常开发软件的过程中，我们用一些高级语言如C/C++编写程序，然后利用编译器生成可执行文件。例如一个简单的C语言写成的程序helloworld.c：</p>
+<pre tabindex="0"><code>#include&lt;stdio.h&gt;
+int main(int argc, char** argv)
+{
+    printf(&#34;Hello World\n&#34;);
+}</code></pre>
+<p>通过如下的命令就能生成可执行文件helloworld：</p>
+<pre tabindex="0"><code>$ gcc helloworld.c -o helloworld
+$ ./helloworld
+Hello World</code></pre>
+<p>编译器做了什么，这条命令怎么生成这个“helloworld”可执行文件的呢？实际上可以分成四个步骤：预编译，编译，汇编和链接。</p>
+
+<h4 id="预编译">预编译</h4>
+
+<p>首先编译器会对helloworld.c源文件和一些头文件执行预编译，在这个例子里就是把stdio.h这个文件在helloworld.c展开来生成helloworld.i文件。
+预编译的过程主要包括以下过程：处理由 “#” 开头的预编译指令，如“#ifdef”, “#include”等，将这些预编译指令或展开或删除不需要的分支，同时会删除程序的注释，添加行号和标识。通过预编译，生成的文件就不包含宏定义了，所以我们可以通过查看预编译生成的文件来确定那些宏分支是保留的。</p>
+
+<h4 id="编译">编译</h4>
+
+<p>编译的过程就是对预编译生成的文件进行一系列解析输出汇编文件，这一系列过程包括词法分析，语法分析，语义分析，源代码优化，代码生成和目标代码优化等过程。对于编译的过程，这是一个“long long story”了，我不打算在这里展开了。
+经过预编译和编译过程，编译器将源文件转换成了汇编文件。汇编代码是机器语言的一种表现形式，就是用人类能看懂的标识（汇编语言）来描述机器码。</p>
+
+<h4 id="汇编">汇编</h4>
+
+<p>汇编的过程就是将编译生成的汇编代码解析成可执行文件，这个过程没有复杂的语法和语义解析，只是简单的将汇编指令翻译成机器指令，通过汇编就生成了目标文件helloworld.o。</p>
+
+<h4 id="链接">链接</h4>
+
+<p>到这读者可能有点疑惑，不是都已经生成机器指令了吗，还有链接器什么事？细心的读者可能发现了，“printf”这个函数在源文件中是没有定义的，程序要怎么跳转到这个函数呢？这正是链接器要做的事情了，事实上上述简单的编译指令已经包含了对glibc中相关库的链接，具体的链接过程比较复杂就不在这里展开了。
+从这里就可以引出文章的主题“链接器”了，链接器的作用就是将编译及汇编生成的目标文件和相关的库通过一定的方法结合成一个文件，最终生成的这个文件就是可执行文件了。
+为什么需要链接这个过程呢，不能把所有函数都定义好，编译汇编过程直接生成可执行文件吗？事实上一开始人们就是这么干的，早期高级语言还没有被发明出来的时候程序员们用汇编语言直接编写程序，并通过汇编器直接生成机器码在计算机里执行。随着高级语言（如C语言）的发明，人们开始研究模块化和子程序，希望将一些常用的功能包装起来以便于大家共同使用。这就要求汇编器编出来的不是直接可执行的机器码，而是一个特殊的“目标文件”，这个目标文件可以被不同的可执行文件包含，而这就需要一个专门的程序去解决这个组装不同目标文件的问题，这个专门的程序就是链接器。所以链接器就是用来把各个模块组装到一起生成可执行文件的。</p>
+
+<h2 id="共享库">共享库</h2>
+
+<p>前文还留下了另一个话题，链接器还可以将目标文件组装成一个共享库。那么什么是共享库，它又有什么作用呢？共享库的发明来自于对虚拟内存系统的优化，现代操作系统大多使用了虚拟内存技术。通常虚拟内存系统中总是同时跑很多进程，而人们发现有一些基本的模块几乎在所有的进程中都会用到，所以大量的进程复制了这部分相同的代码，而通过虚拟内存技术可以做到只保留这段代码的一个副本在实际内存中，虚拟内存系统通过映射让所有的进程都可以复用这块代码。
+而这块共享代码就是共享库，而关于如何实现所有进程复用这块代码涉及到链接器的另一个功能“动态链接”，我将在后面的文章中继续介绍这方面的内容。</p>
+
+<h2 id="总结">总结</h2>
+
+<p>好了，关于链接器的基本功能的介绍基本上就到这了，读者应该了解了链接器的基本功能了。接下来我会继续讲讲链接器是如何实现这些功能的，首先会介绍一下对链接器执行的对象“目标文件”，看看目标文件究竟长什么样，我们下篇文章继续。</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://jackwang816.github.io/tags/%E7%BC%96%E8%AF%91%E9%93%BE%E6%8E%A5/">编译链接</a>
+
+  <a class="tag tag--primary tag--small" href="https://jackwang816.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://jackwang816.github.io/2022/03/wrap-function-by-linker-option/" data-tooltip="利用 --wrap 链接选项包装函数的技巧">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 薛定谔的猫. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://jackwang816.github.io/2022/03/wrap-function-by-linker-option/" data-tooltip="利用 --wrap 链接选项包装函数的技巧">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://jackwang816.github.io/images/profilePortrait.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">薛定谔的猫</h4>
+    
+      <div id="about-card-bio">个人博客</div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Software Engineer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://jackwang816.github.io/images/blog.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://jackwang816.github.io/js/script-pcw6v3xilnxydl1vddzazdverrnn9ctynvnxgwho987mfyqkuylcb1nlt.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+  
+
+
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_CHTML-full" integrity="sha256-GhM+5JHb6QUzOQPXSJLEWP7R73CbkisjzK5Eyij4U9w=" crossorigin="anonymous"></script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      CommonHTML: { linebreaks: { automatic: true } },
+      tex2jax: { inlineMath: [ ['$', '$'], ['\\(','\\)'] ], displayMath: [ ['$$','$$'], ['\\[', '\\]'] ], processEscapes: false },
+      messageStyle: 'none'
+    });
+  </script>
+
+
+
+    
+  </body>
+</html>
+

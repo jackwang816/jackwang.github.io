@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.96.0 with theme Tranquilpeak 0.4.8-BETA">
+<meta name="author" content="薛定谔的猫">
+<meta name="keywords" content="">
+<meta name="description" content="最近在公司项目中看到一个链接技巧，可以通过链接器的链接选项 &ndash;wrap 来包装一个函数，使得在程序链接的时候链接器自动将对目标函数的引用解析到我们定义的包装函数。通过这个小技巧可以很方便的在不改变代码结构的前提下，通过链接选项来控制具体环境下的函数具体实现方法，替换掉原项目中某些函数的实现。这个技巧在debug以及一些嵌入式项目的单元测试中比较好用。
+
+话不多说，来看看&ndash;wrap这个链接选项具体的用法吧。">
+
+
+<meta property="og:description" content="最近在公司项目中看到一个链接技巧，可以通过链接器的链接选项 &ndash;wrap 来包装一个函数，使得在程序链接的时候链接器自动将对目标函数的引用解析到我们定义的包装函数。通过这个小技巧可以很方便的在不改变代码结构的前提下，通过链接选项来控制具体环境下的函数具体实现方法，替换掉原项目中某些函数的实现。这个技巧在debug以及一些嵌入式项目的单元测试中比较好用。
+
+话不多说，来看看&ndash;wrap这个链接选项具体的用法吧。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="利用 --wrap 链接选项包装函数的技巧">
+<meta name="twitter:title" content="利用 --wrap 链接选项包装函数的技巧">
+<meta property="og:url" content="https://jackwang816.github.io/2022/03/wrap-function-by-linker-option/">
+<meta property="twitter:url" content="https://jackwang816.github.io/2022/03/wrap-function-by-linker-option/">
+<meta property="og:site_name" content="薛定谔的猫">
+<meta property="og:description" content="最近在公司项目中看到一个链接技巧，可以通过链接器的链接选项 &ndash;wrap 来包装一个函数，使得在程序链接的时候链接器自动将对目标函数的引用解析到我们定义的包装函数。通过这个小技巧可以很方便的在不改变代码结构的前提下，通过链接选项来控制具体环境下的函数具体实现方法，替换掉原项目中某些函数的实现。这个技巧在debug以及一些嵌入式项目的单元测试中比较好用。
+
+话不多说，来看看&ndash;wrap这个链接选项具体的用法吧。">
+<meta name="twitter:description" content="最近在公司项目中看到一个链接技巧，可以通过链接器的链接选项 &ndash;wrap 来包装一个函数，使得在程序链接的时候链接器自动将对目标函数的引用解析到我们定义的包装函数。通过这个小技巧可以很方便的在不改变代码结构的前提下，通过链接选项来控制具体环境下的函数具体实现方法，替换掉原项目中某些函数的实现。这个技巧在debug以及一些嵌入式项目的单元测试中比较好用。
+
+话不多说，来看看&ndash;wrap这个链接选项具体的用法吧。">
+<meta property="og:locale" content="zh-cn">
+
+  
+    <meta property="article:published_time" content="2022-03-28T00:00:00">
+  
+  
+    <meta property="article:modified_time" content="2022-03-28T00:00:00">
+  
+  
+  
+    
+      <meta property="article:section" content="2022-03">
+    
+  
+  
+    
+      <meta property="article:tag" content="C">
+    
+      <meta property="article:tag" content="编译">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://jackwang816.github.io/images/profilePortrait.jpg">
+  <meta property="twitter:image" content="https://jackwang816.github.io/images/profilePortrait.jpg">
+
+
+    <title>利用 --wrap 链接选项包装函数的技巧</title>
+
+    <link rel="icon" href="https://jackwang816.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://jackwang816.github.io/2022/03/wrap-function-by-linker-option/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://jackwang816.github.io/css/style-twzjdbqhmnnacqs0pwwdzcdbt8yhv8giawvjqjmyfoqnvazl0dalmnhdkvp7.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://jackwang816.github.io/">薛定谔的猫</a>
+  </div>
+  
+    
+      <a class="header-right-picture "
+         href="https://jackwang816.github.io/#about">
+    
+    
+    
+      
+        <img class="header-picture" src="https://jackwang816.github.io/images/profilePortrait.jpg" alt="作者的图片" />
+      
+    
+    </a>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://jackwang816.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://jackwang816.github.io/images/profilePortrait.jpg" alt="作者的图片" />
+        </a>
+        <h4 class="sidebar-profile-name">薛定谔的猫</h4>
+        
+          <h5 class="sidebar-profile-bio">个人博客</h5>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">首页</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">分类</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">标签</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">归档</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://jackwang816.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">关于</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/jackwang816" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      利用 --wrap 链接选项包装函数的技巧
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2022-03-28T00:00:00Z">
+        
+  三月 28, 2022
+
+      </time>
+    
+    
+  
+  
+    <span>发布在</span>
+    
+      <a class="category-link" href="https://jackwang816.github.io/categories/2022-03">2022-03</a>
+    
+  
+
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>最近在公司项目中看到一个链接技巧，可以通过链接器的链接选项 &ndash;wrap 来包装一个函数，使得在程序链接的时候链接器自动将对目标函数的引用解析到我们定义的包装函数。通过这个小技巧可以很方便的在不改变代码结构的前提下，通过链接选项来控制具体环境下的函数具体实现方法，替换掉原项目中某些函数的实现。这个技巧在debug以及一些嵌入式项目的单元测试中比较好用。</p>
+
+<p>话不多说，来看看&ndash;wrap这个链接选项具体的用法吧。</p>
+
+<h1 id="table-of-contents">目录</h1><nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#链接选项描述">链接选项描述</a></li>
+<li><a href="#测试代码">测试代码</a></li>
+<li><a href="#应用">应用</a></li>
+<li><a href="#总结">总结</a></li>
+</ul></li>
+</ul>
+</nav>
+
+<h2 id="链接选项描述">链接选项描述</h2>
+
+<p>以下是GCC linker option &ndash;wrap的描述：</p>
+<pre tabindex="0"><code>Use a wrapper function for symbol. Any undefined reference to symbol will be resolved to
+__wrap_symbol. Any undefined reference to __real_symbol will be resolved to symbol. This 
+can be used to provide a wrapper for a system function. The wrapper function should be 
+called __wrap_symbol. If it wishes to call the system function, it should call __real_symbol.
+Here is a trivial example:
+void *
+__wrap_malloc (int c)
+{
+    printf (&#34;malloc called with %ld\n&#34;, c);
+    return __real_malloc (c);
+}
+If you link other code with this file using --wrap malloc, then all calls to malloc will
+call the function __wrap_malloc instead. The call to __real_malloc in __wrap_malloc will
+call the real malloc function. You may wish to provide a __real_malloc function as well, 
+so that links without the --wrap option will succeed. If you do this, you should not put 
+the definition of __real_malloc in the same file as __wrap_malloc; if you do, the assembler 
+may resolve the call before the linker has a chance to wrap it to malloc.</code></pre>
+<p>从描述可以看出，这个链接选项可以为符号进行包装，所有对这个符号未定义的引用（undefined reference）都会被链接到<strong>wrap_symbol这个定义，而任何对未定义的</strong>real_symbol的引用都会被链接到原始的symbol这个定义。换句话说，如果使用了&ndash;wrap这个选项，程序中所有对symbol的调用都会被链接器解析到<strong>wrap_symbol，实际调用的就是</strong>wrap_symbol这个符号，如果想调用原始的symbol定义，就要调用__real_symbol这个符号。</p>
+
+<p><strong><em>Talk is cheap, show me the code!!</em></strong></p>
+
+<h2 id="测试代码">测试代码</h2>
+
+<p>main.c</p>
+<pre tabindex="0"><code>int main(int args, char**argv)
+{
+    test_func();
+    __real_test_func();
+}</code></pre>
+<p>wrapper.c</p>
+<pre tabindex="0"><code>#include&lt;stdio.h&gt;
+
+void __wrap_test_func()
+{
+    printf(&#34;wrap test func\n&#34;);
+}</code></pre>
+<p>orgLib.c</p>
+<pre tabindex="0"><code>#include&lt;stdio.h&gt;
+
+void test_func()
+{
+    printf(&#34;test func\n&#34;);
+}</code></pre>
+<p>通过下面的命令行编译：</p>
+<pre tabindex="0"><code>gcc main.c wrapper.c orgLib.c -Wl,--wrap=test_func -o test_wrap</code></pre>
+<p>我们来看看运行的结果吧：</p>
+<pre tabindex="0"><code>$./test_wrap
+wrap test func
+test func</code></pre>
+<p>可以看到当调用test_func时，程序实际调用的是<strong>wrap_test_func, 而调用</strong>real_test_func才是调用原始的test_func函数。到此我们就完成了简单的wrap操作，通过这个链接选项，我们可以很方便的替换掉某些函数的实现而不改变源代码。</p>
+
+<p>这里有一点需要注意，来看一下gcc文档中说明：</p>
+<pre tabindex="0"><code>Any undefined reference to symbol will be resolved to __wrap_symbol.</code></pre>
+<p>是针对所有 &ldquo;undefined reference to symbol&rdquo;, 在引用symbol的源文件里面不能有symbol的定义，否则汇编器在处理源文件的时候就会解析这个symbol，链接器也就没有机会wrap这个symbol了。这么说起来有点抽象，我们还是用一个例子来讲一下这点。</p>
+
+<p>main.c</p>
+<pre tabindex="0"><code>#include&lt;stdio.h&gt;
+
+void test_func()
+{
+    printf(&#34;test func\n&#34;);
+}
+
+int main(int args, char**argv)
+{
+    test_func();
+    __real_test_func();
+}</code></pre>
+<p>wrapper.c</p>
+<pre tabindex="0"><code>#include&lt;stdio.h&gt;
+
+void __wrap_test_func()
+{
+    printf(&#34;wrap test func\n&#34;);
+}</code></pre>
+<p>编译:
+    gcc main.c wrapper.c -Wl,&ndash;wrap=test_func -o test_wrap</p>
+
+<p>运行一下看结果:</p>
+<pre tabindex="0"><code>$ ./test_wrap
+test func
+test func</code></pre>
+<p>结果可以看出来，这次并没有被链接器test_func并没有被链接包装。原因就像前面所说的，编译main.c的时候，汇编器已经解析了test_func这个符号，也就是说main.c汇编结束以后的目标文件已经没有test_func这个符号的引用，链接器也就没有机会再去打包这个符号了。</p>
+
+<h2 id="应用">应用</h2>
+
+<p>原理已经讲完了，那这个wrap链接选项要怎么用呢？这里介绍两种简单的应用。</p>
+
+<p>一种用法是在调试程序的时候，希望在每次调用某个库函数的时候加上一些调试信息，或者是在产品发布以后，希望对某个库函数打一个补丁，增加一些逻辑。这时就可以通过简单的链接选项替换原来的库函数，如下程序替换malloc库函数：</p>
+<pre tabindex="0"><code>void *__wrap_malloc(size_t size)
+{
+    printf(&#34;size: %d\n&#34;, size);
+    return __real_malloc(size);
+}</code></pre>
+<p>还有一种用法就是给单元测试打桩，在很多嵌入式项目中涉及很多对硬件的操作，在写单元测试的时候就需要屏蔽掉硬件操作，重新定义一个接口替换掉原先的接口。在整个项目中一一替换，效率太低也容易出错，通过这个链接选项可以很方便的将一些函数用重新定义的桩函数替换。例如：
+HAL_Dma.c</p>
+<pre tabindex="0"><code>void HAL_DmaCopyBlock(uint8_t *src, uint8_t *dst, uint32_t len)
+{
+    // DMA copy block until copy done
+    ...
+}</code></pre>
+<p>Wrap_HAL_Dma.c</p>
+<pre tabindex="0"><code>void __wrap_HAL_DmaCopyBlock(uint8_t* src, uint8_t* dst, uint32_t len)
+{
+    memcpy(src, dst, len);
+}</code></pre>
+<p>如上所示，当使用&ndash;wrap链接选项对单元测试的代码进行链接时，原程序中的DMA相关的拷贝操作就被替换成了c库函数 memcpy，而不需要在原程序中大面积的替换，简单方便。</p>
+
+<h2 id="总结">总结</h2>
+
+<p>gcc提供的这个&ndash;wrap链接选项可以很方便的对某个函数做替换操作，在调试、打补丁以及单元测试中挺有用的，文章简单介绍了一下这个选项的使用，仅供参考。</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">标签</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://jackwang816.github.io/tags/c/">C</a>
+
+  <a class="tag tag--primary tag--small" href="https://jackwang816.github.io/tags/%E7%BC%96%E8%AF%91/">编译</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://jackwang816.github.io/2022/04/linker-series-1/" data-tooltip="链接器系列（一）">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://jackwang816.github.io/2020/12/markdown-grammer/" data-tooltip="Markdown语法">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2022 薛定谔的猫. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://jackwang816.github.io/2022/04/linker-series-1/" data-tooltip="链接器系列（一）">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">下一篇</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://jackwang816.github.io/2020/12/markdown-grammer/" data-tooltip="Markdown语法">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">上一篇</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#table-of-contents">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://jackwang816.github.io/images/profilePortrait.jpg" alt="作者的图片" />
+    
+    <h4 id="about-card-name">薛定谔的猫</h4>
+    
+      <div id="about-card-bio">个人博客</div>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Software Engineer
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        China
+      </div>
+    
+  </div>
+</div>
+
+    
+
+    
+  
+    
+      <div id="cover" style="background-image:url('https://jackwang816.github.io/images/blog.jpg');"></div>
+    
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://jackwang816.github.io/js/script-pcw6v3xilnxydl1vddzazdverrnn9ctynvnxgwho987mfyqkuylcb1nlt.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+  
+
+
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_CHTML-full" integrity="sha256-GhM+5JHb6QUzOQPXSJLEWP7R73CbkisjzK5Eyij4U9w=" crossorigin="anonymous"></script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      CommonHTML: { linebreaks: { automatic: true } },
+      tex2jax: { inlineMath: [ ['$', '$'], ['\\(','\\)'] ], displayMath: [ ['$$','$$'], ['\\[', '\\]'] ], processEscapes: false },
+      messageStyle: 'none'
+    });
+  </script>
+
+
+
+    
+  </body>
+</html>
+

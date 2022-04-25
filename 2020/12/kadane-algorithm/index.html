@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="generator" content="Hugo 0.79.1 with theme Tranquilpeak 0.4.8-BETA">
+<meta name="generator" content="Hugo 0.96.0 with theme Tranquilpeak 0.4.8-BETA">
 <meta name="author" content="薛定谔的猫">
 <meta name="keywords" content="">
 <meta name="description" content="写这篇文章的目的是分享自己在解Leetcode题目“最大子数组问题”时候，用到的Kadane算法，这是一个典型的动态规划算法示例。
@@ -267,7 +267,7 @@
 <p>给定一个整数数组 nums ，找到一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。</p>
 
 <p>示例:</p>
-<pre><code>输入: [-2,1,-3,4,-1,2,1,-5,4]
+<pre tabindex="0"><code>输入: [-2,1,-3,4,-1,2,1,-5,4]
 输出: 6
 解释: 连续子数组 [4,-1,2,1] 的和最大，为 6。</code></pre>
 <p>来源：力扣（LeetCode）
@@ -278,7 +278,7 @@
 <h1 id="2-暴力破解">2. 暴力破解</h1>
 
 <p>首先观察题目可以很自然地想到一个明显的解决方法：遍历所有的子数组并计算子数组的和，从所有子数组和中找到最大的和，即为结果。这个方法很符合我们的直觉，那么如何遍历所有的子数组呢？直观的办法是从第一个元素开始，查找所有以nums[0]起始的子数组，然后在依次查找以num[1],nums[2]&hellip;nums[n-1]起始的所有子数组，具体如下：</p>
-<pre><code>nums[0]起始子数组:                  nums[1]起始子数组:
+<pre tabindex="0"><code>nums[0]起始子数组:                  nums[1]起始子数组:
 -2, 1, -3, 4, -1, 2, 1, -5, 4      -2, 1, -3, 4, -1, 2, 1, -5, 4
 -2                                     1,
 -2, 1                                  1, -3
@@ -289,7 +289,7 @@
 -2, 1, -3, 4, -1, 2, 1, -5             1, -3, 4, -1, 2, 1, -5, 4
 -2, 1, -3, 4, -1, 2, 1, -5, 4</code></pre>
 <p>上面介绍的方法就可以遍历给定数组的所有子数组了，不过为了方便下文介绍从暴力破解推导Kadane算法的过程，我们对这个遍历方法做个改变，改成从后往前遍历。即：从最后一个元素开始，查找所有以nums[n-1]结束的子数组，为了方便描述用subarray[n-1]表示，然后依次查找以nums[n-2], nums[n-3]&hellip;nums[0]结束的子数组（subarray[n-2], subarray[n-3]&hellip;subarray[0]），具体如下：</p>
-<pre><code>subarray[n-1]:                      subarray[n-2]:
+<pre tabindex="0"><code>subarray[n-1]:                      subarray[n-2]:
 -2, 1, -3, 4, -1, 2, 1, -5, 4      -2, 1, -3, 4, -1, 2, 1, -5, 4
                             4                              -5
                         -5, 4                           1, -5
@@ -299,18 +299,18 @@
     1, -3, 4, -1, 2, 1, -5, 4      -2, 1, -3, 4, -1, 2, 1, -5
 -2, 1, -3, 4, -1, 2, 1, -5, 4,</code></pre>
 <p>显然，这种办法也可以遍历到nums数组的所有可能的子数组，通过这种暴力破解的方法就很容易得到答案了。下面放出我的代码，这里我使用递归，能更直观的理解第二种遍历方法：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">maxSubArray</span>(self, nums: list, n: int) <span style="color:#f92672">-&gt;</span> int:
-    <span style="color:#66d9ef">if</span> n<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span> <span style="color:#75715e"># in case there is no item in nums</span>
-    <span style="color:#66d9ef">if</span> n<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>:
-        <span style="color:#66d9ef">return</span> nums[<span style="color:#ae81ff">0</span>]
-    max_sum, idx <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>maxSubArray(nums[<span style="color:#ae81ff">0</span>:n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>], n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>), n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-    s <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-    <span style="color:#66d9ef">while</span> idx <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>:
-        s <span style="color:#f92672">+=</span> nums[idx]
-        max_sum <span style="color:#f92672">=</span> max(s, max_sum)
-        idx <span style="color:#f92672">-=</span> <span style="color:#ae81ff">1</span>
-    <span style="color:#66d9ef">return</span> max_sum</code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">maxSubArray</span>(self, nums: list, n: int) <span style="color:#f92672">-&gt;</span> int:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> n<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span> <span style="color:#75715e"># in case there is no item in nums</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> n<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> nums[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>    max_sum, idx <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>maxSubArray(nums[<span style="color:#ae81ff">0</span>:n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>], n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>), n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    s <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> idx <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>        s <span style="color:#f92672">+=</span> nums[idx]
+</span></span><span style="display:flex;"><span>        max_sum <span style="color:#f92672">=</span> max(s, max_sum)
+</span></span><span style="display:flex;"><span>        idx <span style="color:#f92672">-=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> max_sum</span></span></code></pre></div>
 <p>相信你也看到了，这种算法并不高效，随着数组规模扩大（n增大），子数组的数量也会快速增加，从而使的算法的时间复杂度快速增加。这个算法的时间复制度是$O(n^2)$, 是种比较低效的方法。</p>
 
 <p>那么我们可以如何提高这个算法的效率呢？相信你也想到了，从我的递归程序里面可以看出，这个题目是可以用动态规划来优化的，接下来我们来看看如何使用动态规划解决这个问题。</p>
@@ -322,7 +322,7 @@
 <p>可以用动态规划求解的问题一般有两个性质：最优子结构和重复子问题。</p>
 
 <p>让我们来分析一下这个题目是否可以使用动态规划的方法求解，首先回忆一下刚刚的递归过程，对于元素i，我们不妨定义subarray[i]为以i元素结尾的所有子数组集合,S[i]表示以i为结尾所有子数组和的集合，sum[i][j]表示以j开头i结束的子数组和（$S[i] \in sum[i][j]$），进而可以定义max_sum[i]表示以i结尾的最大子数组和：</p>
-<pre><code>  -2, 1, -3, 4, -1, 2, 1, -5, 4     |   -2, 1, -3, 4, -1, 2, 1, -5, 4
+<pre tabindex="0"><code>  -2, 1, -3, 4, -1, 2, 1, -5, 4     |   -2, 1, -3, 4, -1, 2, 1, -5, 4
                                   |                     2    2    sum[5][5]
               -1   -1   sum[4][4] |                 -1, 2    1    sum[5][4]
            4, -1    3   sum[4][3] |              4, -1, 2    5    sum[5][3]
@@ -334,10 +334,10 @@
     subarray[4]    S[4]           |        subarray[5]       S[5]
         max_sum[4] = 3                         max_sum[5] = 5</code></pre>
 <p>递归公式如下：</p>
-<pre><code>max_sum[i] = max(sum[i][0], sum[i][1] ...sum[i][i])
+<pre tabindex="0"><code>max_sum[i] = max(sum[i][0], sum[i][1] ...sum[i][i])
 final_max = max(max_sum[i], max_sum[i-1])</code></pre>
 <p>再来观察一下sum[i][j]，可以得到如下规律：</p>
-<pre><code>sum[i][i] = nums[i]
+<pre tabindex="0"><code>sum[i][i] = nums[i]
 sum[i][i-1] = nums[i] + sum[i-1][i-1]
 sum[i][i-2] = nums[i] + sum[i-1][i-2]
         ...
@@ -345,22 +345,22 @@ sum[i][0] = nums[i] + sum[i-1][0]</code></pre>
 <p>我们可以看出sum[i][j]是可以通过sum[i-1][j]推导得到，其中计算sum[i][j]的过程中包含了大量重复计算的子问题sum[i-1][j]，到此我们可以看出这个问题符合动态规划的两个特征，可以用动态规划来解决这个问题，具体如何优化呢？</p>
 
 <p>我们来观察一下递归公式中的max_sum[i]以及上面推导的sum[i][j]的计算过程，很容易可以得到以下公式：</p>
-<pre><code>max_sum[i] = max(nums[i], max[i-1]+nums[i])</code></pre>
+<pre tabindex="0"><code>max_sum[i] = max(nums[i], max[i-1]+nums[i])</code></pre>
 <p>即所有以i结尾的子数组的和的最大值max_sum[i]可以从nums[i]和max[i-1]+nums[i]这两个数中选最大的一个，从而最大子数组和的问题可以转化为递归地计算$max_sum$的子问题上来,而且可以很容易的得出max_sum[0]=nums[0]。因此，可以很自然的得到以下动态规划状态转移方程：</p>
-<pre><code>max_sum[i] = max(nums[i], max[i-1]+nums[i])
+<pre tabindex="0"><code>max_sum[i] = max(nums[i], max[i-1]+nums[i])
 final_max = max(max_sum[i], final_max)</code></pre>
 <h1 id="4-python代码">4. Python代码</h1>
 
 <p>至此，我们已经分析了这个问题从暴力破解到动态规划算法的优化过程，下面我贴出我自己的python代码，仅供参考：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">maxSubArray</span>(self, nums: List[int]) <span style="color:#f92672">-&gt;</span> int:
-    <span style="color:#66d9ef">if</span> len(nums) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>:
-        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
-    final_max <span style="color:#f92672">=</span> nums[<span style="color:#ae81ff">0</span>]
-    max_sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-    <span style="color:#66d9ef">for</span> n <span style="color:#f92672">in</span> nums:
-        max_sum <span style="color:#f92672">=</span> max(n, max_sum<span style="color:#f92672">+</span>n)
-        final_max <span style="color:#f92672">=</span> max(max_sum, final_max)
-    <span style="color:#66d9ef">return</span> final_max</code></pre></div>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">maxSubArray</span>(self, nums: List[int]) <span style="color:#f92672">-&gt;</span> int:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> len(nums) <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    final_max <span style="color:#f92672">=</span> nums[<span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>    max_sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> n <span style="color:#f92672">in</span> nums:
+</span></span><span style="display:flex;"><span>        max_sum <span style="color:#f92672">=</span> max(n, max_sum<span style="color:#f92672">+</span>n)
+</span></span><span style="display:flex;"><span>        final_max <span style="color:#f92672">=</span> max(max_sum, final_max)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> final_max</span></span></code></pre></div>
 <p>这里我没有用数组存储max_sum[i]，而是直接用了一个变量来存储，由于状态转移过程只需要用到上一个位置的最优结果，因此只存储上一个max_sum是可行的，这样也节约了存储。可以看出优化后的程序，我们只需要遍历一次nums数组，时间复杂度为$O(n)$，比暴力求解了较好的提高。</p>
 
 <h1 id="5-总结">5. 总结</h1>
@@ -437,7 +437,7 @@ final_max = max(max_sum[i], final_max)</code></pre>
         </article>
         <footer id="footer" class="main-content-wrap">
   <span class="copyrights">
-    &copy; 2020 薛定谔的猫. All Rights Reserved
+    &copy; 2022 薛定谔的猫. All Rights Reserved
   </span>
 </footer>
 
